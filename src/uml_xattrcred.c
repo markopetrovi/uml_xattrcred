@@ -89,10 +89,19 @@ void do_set_recursive_xattr(const char *path)
 	unsigned long i = 0;
 	while ((d = readdir(curdir))) {
 		i++;
-		if (d->d_type == DT_DIR || d->d_type == DT_REG) {
-			set_xattr(d->d_name);
-			if (d->d_type == DT_DIR)
+		if (d->d_type == DT_DIR) {
+			if (!strcmp(d->d_name, "..")) {
+				i--;
+				continue;
+			}
+			if (!strcmp(d->d_name, "."))
+				set_xattr(d->d_name);
+			else
 				do_set_recursive_xattr(d->d_name);
+			continue;
+		}
+		if (d->d_type == DT_REG) {
+			set_xattr(d->d_name);
 			continue;
 		}
 		const char *type;
@@ -138,7 +147,8 @@ void set_files_limit()
 	rlim.rlim_max = RLIM_INFINITY;
 	if (setrlimit64(RLIMIT_NOFILE, &rlim)) {
 		if (getrlimit64(RLIMIT_NOFILE, &rlim)) {
-			printf("[WARNING]: The maximum directory tree depth that will be processed without errors is: <unknown>\nIt's equal to RLIMIT_NOFILE-3 that we can't fetch: %s\n", strerror(errno));
+			printf("[WARNING]: The maximum directory tree depth that will be processed without errors is: <unknown>\n"
+				"It's equal to RLIMIT_NOFILE-3 that we can't fetch: %s\n", strerror(errno));
 			return;
 		}
 		/*
