@@ -46,9 +46,9 @@ void set_xattr(const char *filename)
 		exit(1);
 	}
 	char mode_string[] = "0000";	/* mode is 16-bit, but permissions only 12 bits, and we won't virtualize file format -> max 4 digits in octal */
-	int i = sizeof(mode_string) - 1;
+	int i = sizeof(mode_string) - 2;
 	info.stx_mode &= ~S_IFMT;
-	while (info.stx_mode > 0 && i > 0) {
+	while (info.stx_mode > 0 && i >= 0) {
 		mode_string[i] = (info.stx_mode % 8) + '0';
 		info.stx_mode = info.stx_mode / 8;
 		i--;
